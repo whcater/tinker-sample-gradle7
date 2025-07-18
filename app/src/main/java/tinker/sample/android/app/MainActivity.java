@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
         Log.e(TAG, "i am on onCreate classloader:" + MainActivity.class.getClassLoader().toString());
         //test resource change
         Log.e(TAG, "i am on onCreate string:" + getResources().getString(R.string.test_resource));
-//        Log.e(TAG, "i am on patch onCreate");
+       Log.e(TAG, "i am on patch onCreate");
+       Log.e(TAG, "=== PATCH TEST MESSAGE: THIS IS AFTER PATCH ===");
 
         mTvMessage = findViewById(R.id.tv_message);
 
@@ -69,7 +70,48 @@ public class MainActivity extends AppCompatActivity {
         loadPatchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TinkerInstaller.onReceiveUpgradePatch(getApplicationContext(), Environment.getExternalStorageDirectory().getAbsolutePath() + "/patch_signed_7zip.apk");
+                // 使用应用特定目录，无需存储权限
+                String patchPath = getExternalFilesDir(null).getAbsolutePath() + "/app-debug-patch_signed_7zip.apk";
+                Log.d(TAG, "=== Tinker Patch Loading Started ===");
+                Log.d(TAG, "App external files directory: " + getExternalFilesDir(null).getAbsolutePath());
+                Log.d(TAG, "Patch file path: " + patchPath);
+                
+                // 检查 Tinker 状态
+                Tinker tinker = Tinker.with(getApplicationContext());
+                Log.d(TAG, "Tinker installed: " + tinker.isTinkerInstalled());
+                Log.d(TAG, "Tinker enabled: " + tinker.isTinkerEnabled());
+                Log.d(TAG, "Current TINKER_ID: " + BuildInfo.TINKER_ID);
+                Log.d(TAG, "Current PLATFORM: " + BuildInfo.PLATFORM);
+                
+                // Check if patch file exists
+                java.io.File patchFile = new java.io.File(patchPath);
+                if (patchFile.exists()) {
+                    Log.d(TAG, "Patch file exists, size: " + patchFile.length() + " bytes");
+                    Log.d(TAG, "Patch file readable: " + patchFile.canRead());
+                    
+                    // 检查 patch 文件的元数据
+                    try {
+                        java.util.Properties properties = ShareTinkerInternals.fastGetPatchPackageMeta(patchFile);
+                        if (properties != null) {
+                            Log.d(TAG, "Patch platform: " + properties.getProperty("platform"));
+                            Log.d(TAG, "Patch TINKER_ID: " + properties.getProperty("TINKER_ID"));
+                            Log.d(TAG, "Patch properties: " + properties.toString());
+                        } else {
+                            Log.e(TAG, "Failed to read patch metadata");
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error reading patch metadata: " + e.getMessage());
+                    }
+                    
+                    Log.d(TAG, "Starting patch installation...");
+                    TinkerInstaller.onReceiveUpgradePatch(getApplicationContext(), patchPath);
+                    Log.d(TAG, "Patch installation request sent");
+                } else {
+                    Log.e(TAG, "ERROR: Patch file does not exist at: " + patchPath);
+                    Log.e(TAG, "Please push the patch file to app's external files directory");
+                    Log.e(TAG, "Use command: adb push app-debug-patch_signed_7zip.apk " + patchPath);
+                }
+                Log.d(TAG, "=== Tinker Patch Loading End ===");
             }
         });
 
@@ -150,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
             sb.append(String.format("[buildConfig BASE_TINKER_ID] %s \n", BaseBuildInfo.BASE_TINKER_ID));
 
             sb.append(String.format("[buildConfig MESSSAGE] %s \n", BuildInfo.MESSAGE));
-            sb.append(String.format("[TINKER_ID] %s \n", tinker.getTinkerLoadResultIfPresent().getPackageConfigByName(ShareConstants.TINKER_ID)));
+            sb.append(String.format("[TINKER_ID] %s \n", ShareTinkerInternals.getManifestTinkerID(getApplicationContext())));
             sb.append(String.format("[packageConfig patchMessage] %s \n", tinker.getTinkerLoadResultIfPresent().getPackageConfigByName("patchMessage")));
             sb.append(String.format("[TINKER_ID Rom Space] %d k \n", tinker.getTinkerRomSpace()));
 
@@ -185,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         Log.e(TAG, "i am on onResume");
-//        Log.e(TAG, "i am on patch onResume");
+       Log.e(TAG, "i am on patch onResume");
 
         super.onResume();
         Utils.setBackground(false);

@@ -59,6 +59,7 @@ android {
     //recommend
     dexOptions {
         jumboMode = true
+        preDexLibraries = false
     }
 
     signingConfigs {
@@ -150,19 +151,19 @@ def bakPath = file("${buildDir}/bakApk/")
  * add apk from the build/bakApk
  */
 ext {
-    //for some reason, you may want to ignore tinkerBuild, such as instant run debug build?
+    //for some reason, you may want to ignore tinkerBuild, such as instant run debug build? 
     tinkerEnabled = true
 
     //for normal build
     //old apk file to build patch apk
-    tinkerOldApkPath = "${bakPath}/app-debug-0424-15-02-56.apk"
+    tinkerOldApkPath = "${bakPath}/app-debug-0718-16-11-37.apk"
     //proguard mapping file to build patch apk
-    tinkerApplyMappingPath = "${bakPath}/app-debug-1018-17-32-47-mapping.txt"
+    tinkerApplyMappingPath = "${bakPath}/app-debug-0718-16-11-37-mapping.txt"
     //resource R.txt to build patch apk, must input if there is resource changed
-    tinkerApplyResourcePath = "${bakPath}/app-debug-0424-15-02-56-R.txt"
+    tinkerApplyResourcePath = "${bakPath}/app-debug-0718-16-11-37-R.txt"
 
     //only use for build all flavor, if not, just ignore this field
-    tinkerBuildFlavorDirectory = "${bakPath}/app-1018-17-32-47"
+    tinkerBuildFlavorDirectory = "${bakPath}/"
 }
 
 
@@ -215,7 +216,7 @@ if (buildWithTinker()) {
          *         it won't crash, but these changes can't effect. you may ignore it
          * case 5: resources.arsc has changed, but we don't use applyResourceMapping to build
          */
-        ignoreWarning = false
+        ignoreWarning = true
 
         /**
          * optional，default 'true'
@@ -262,7 +263,7 @@ if (buildWithTinker()) {
              * if keepDexApply is true, class in which dex refer to the old apk.
              * open this can reduce the dex diff file size.
              */
-            keepDexApply = false
+            keepDexApply = true
 
             /**
              * optional, default 'false'
