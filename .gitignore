@@ -1,0 +1,17 @@
+*.iml
+.history/
+/local.properties
+/.idea/
+/.gradle/
+/.git/
+.DS_Store
+/build
+/app/[Bb]uild*
+/app/[Rr]elease*
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+.idea
+.vs
+local.properties
