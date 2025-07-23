@@ -23,8 +23,8 @@ import android.content.IntentFilter;
 import android.os.Environment;
 import android.os.StatFs;
 
-import com.tencent.tinker.lib.util.TinkerLog;
 import com.tencent.tinker.loader.shareutil.ShareConstants;
+import com.tencent.tinker.loader.shareutil.ShareTinkerLog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -173,7 +173,7 @@ public class Utils {
                 @Override
                 public void onReceive(Context context, Intent in) {
                     String action = in == null ? "" : in.getAction();
-                    TinkerLog.i(TAG, "ScreenReceiver action [%s] ", action);
+                    ShareTinkerLog.i(TAG, "ScreenReceiver action [%s] ", action);
                     if (Intent.ACTION_SCREEN_OFF.equals(action)) {
                         if (onScreenOffInterface != null) {
                             onScreenOffInterface.onScreenOff();

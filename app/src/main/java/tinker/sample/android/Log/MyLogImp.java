@@ -19,11 +19,12 @@ package tinker.sample.android.Log;
 import android.util.Log;
 
 import com.tencent.tinker.lib.util.TinkerLog;
+import com.tencent.tinker.loader.shareutil.ShareTinkerLog;
 
 /**
- * Created by zhangshaowen on 16/6/3.
+ * Created by whcater 2025-07-20
  */
-public class MyLogImp implements TinkerLog.TinkerLogImp {
+public class MyLogImp implements ShareTinkerLog.TinkerLogImp {
     private static final String TAG = "Tinker.MyLogImp";
 
     public static final int LEVEL_VERBOSE = 0;

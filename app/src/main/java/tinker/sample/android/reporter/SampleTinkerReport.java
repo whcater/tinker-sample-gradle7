@@ -16,9 +16,9 @@
 
 package tinker.sample.android.reporter;
 
-import com.tencent.tinker.lib.util.TinkerLog;
 import com.tencent.tinker.loader.shareutil.ShareConstants;
 import com.tencent.tinker.loader.shareutil.ShareTinkerInternals;
+import com.tencent.tinker.loader.shareutil.ShareTinkerLog;
 
 import tinker.sample.android.util.Utils;
 
@@ -250,7 +250,7 @@ public class SampleTinkerReport {
         reporter.onReport(KEY_LOADED);
 
         if (cost < 0L) {
-            TinkerLog.e(TAG, "hp_report report load cost failed, invalid cost");
+            ShareTinkerLog.e(TAG, "hp_report report load cost failed, invalid cost");
             return;
         }
 
@@ -346,20 +346,20 @@ public class SampleTinkerReport {
                 if (throwable.getMessage().contains(ShareConstants.CHECK_DEX_INSTALL_FAIL)) {
                     reporter.onReport(KEY_LOADED_EXCEPTION_DEX_CHECK);
                     isCheckFail = true;
-                    TinkerLog.e(TAG, "tinker dex check fail:" + throwable.getMessage());
+                    ShareTinkerLog.e(TAG, "tinker dex check fail:" + throwable.getMessage());
                 } else {
                     reporter.onReport(KEY_LOADED_EXCEPTION_DEX);
-                    TinkerLog.e(TAG, "tinker dex reflect fail:" + throwable.getMessage());
+                    ShareTinkerLog.e(TAG, "tinker dex reflect fail:" + throwable.getMessage());
                 }
                 break;
             case ShareConstants.ERROR_LOAD_EXCEPTION_RESOURCE:
                 if (throwable.getMessage().contains(ShareConstants.CHECK_RES_INSTALL_FAIL)) {
                     reporter.onReport(KEY_LOADED_EXCEPTION_RESOURCE_CHECK);
                     isCheckFail = true;
-                    TinkerLog.e(TAG, "tinker res check fail:" + throwable.getMessage());
+                    ShareTinkerLog.e(TAG, "tinker res check fail:" + throwable.getMessage());
                 } else {
                     reporter.onReport(KEY_LOADED_EXCEPTION_RESOURCE);
-                    TinkerLog.e(TAG, "tinker res reflect fail:" + throwable.getMessage());
+                    ShareTinkerLog.e(TAG, "tinker res reflect fail:" + throwable.getMessage());
                 }
                 break;
             case ShareConstants.ERROR_LOAD_EXCEPTION_UNCAUGHT:
@@ -444,10 +444,10 @@ public class SampleTinkerReport {
             reporter.onReport(KEY_APPLIED_UPGRADE_FAIL);
         }
 
-        TinkerLog.i(TAG, "hp_report report apply cost = %d", cost);
+        ShareTinkerLog.i(TAG, "hp_report report apply cost = %d", cost);
 
         if (cost < 0L) {
-            TinkerLog.e(TAG, "hp_report report apply cost failed, invalid cost");
+            ShareTinkerLog.e(TAG, "hp_report report apply cost failed, invalid cost");
             return;
         }
 
@@ -488,7 +488,7 @@ public class SampleTinkerReport {
         if (reporter == null) {
             return;
         }
-        TinkerLog.i(TAG, "hp_report package check failed, error = %d", errorCode);
+        ShareTinkerLog.i(TAG, "hp_report package check failed, error = %d", errorCode);
 
         switch (errorCode) {
             case ShareConstants.ERROR_PACKAGE_CHECK_SIGNATURE_FAIL:

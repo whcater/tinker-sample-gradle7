@@ -1,3 +1,5 @@
-/build/
+/build
 
 /version.properties
+.vs
+.vscode

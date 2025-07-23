@@ -22,9 +22,9 @@ import com.tencent.tinker.lib.patch.UpgradePatch;
 import com.tencent.tinker.lib.reporter.LoadReporter;
 import com.tencent.tinker.lib.reporter.PatchReporter;
 import com.tencent.tinker.lib.tinker.TinkerInstaller;
-import com.tencent.tinker.lib.util.TinkerLog;
 import com.tencent.tinker.lib.util.UpgradePatchRetry;
 import com.tencent.tinker.entry.ApplicationLike;
+import com.tencent.tinker.loader.shareutil.ShareTinkerLog;
 
 import tinker.sample.android.crash.SampleUncaughtExceptionHandler;
 import tinker.sample.android.reporter.SampleLoadReporter;
@@ -67,7 +67,7 @@ public class TinkerManager {
      */
     public static void sampleInstallTinker(ApplicationLike appLike) {
         if (isInstalled) {
-            TinkerLog.w(TAG, "install tinker, but has installed, ignore");
+            ShareTinkerLog.w(TAG, "install tinker, but has installed, ignore");
             return;
         }
         TinkerInstaller.install(appLike);
@@ -83,7 +83,7 @@ public class TinkerManager {
      */
     public static void installTinker(ApplicationLike appLike) {
         if (isInstalled) {
-            TinkerLog.w(TAG, "install tinker, but has installed, ignore");
+            ShareTinkerLog.w(TAG, "install tinker, but has installed, ignore");
             return;
         }
         //or you can just use DefaultLoadReporter

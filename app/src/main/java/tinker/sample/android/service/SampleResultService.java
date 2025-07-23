@@ -16,16 +16,22 @@
 
 package tinker.sample.android.service;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.tencent.tinker.lib.service.DefaultTinkerResultService;
 import com.tencent.tinker.lib.service.PatchResult;
-import com.tencent.tinker.lib.util.TinkerLog;
 import com.tencent.tinker.lib.util.TinkerServiceInternals;
+import com.tencent.tinker.loader.shareutil.ShareConstants;
+import com.tencent.tinker.loader.shareutil.SharePatchInfo;
+import com.tencent.tinker.loader.shareutil.ShareTinkerLog;
 
 import java.io.File;
+import java.util.List;
 
 import tinker.sample.android.util.Utils;
 
@@ -37,25 +43,96 @@ import tinker.sample.android.util.Utils;
 public class SampleResultService extends DefaultTinkerResultService {
     private static final String TAG = "Tinker.SampleResultService";
 
+    private boolean verifyPatchResult(PatchResult result) {
+        if (!result.isSuccess) {
+            return false;
+        }
+
+        try {
+            // 检查补丁目录是否存在
+            File patchDir = new File(result.rawPatchFilePath);
+            if (!patchDir.exists()) {
+                ShareTinkerLog.e(TAG, "Patch directory not exists: " + result.rawPatchFilePath);
+                return false;
+            }
+
+            // 检查关键文件是否存在
+            File patchInfoFile = new File(patchDir, ShareConstants.PATCH_INFO_NAME);
+            if (!patchInfoFile.exists()) {
+                ShareTinkerLog.e(TAG, "Patch info file not exists");
+                return false;
+            }
+
+            // 检查patch.info内容是否有效
+            SharePatchInfo patchInfo = SharePatchInfo.readAndCheckPropertyWithLock(patchInfoFile, patchDir);
+            if (patchInfo == null) {
+                ShareTinkerLog.e(TAG, "Patch info is invalid");
+                return false;
+            }
+
+            ShareTinkerLog.i(TAG, "Patch verification passed");
+            return true;
+
+        } catch (Exception e) {
+            ShareTinkerLog.e(TAG, "Patch verification failed", e);
+            return false;
+        }
+    }
+
+    private boolean isTinkerPatchServiceRunning() {
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningServiceInfo> services = am.getRunningServices(Integer.MAX_VALUE);
+
+        for (ActivityManager.RunningServiceInfo service : services) {
+            if (service.service.getClassName().contains("TinkerPatchService")) {
+                ShareTinkerLog.i(TAG, "TinkerPatchService is running"); 
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public void onPatchResult(final PatchResult result) {
         if (result == null) {
-            TinkerLog.e(TAG, "SampleResultService received null result!!!!");
+            ShareTinkerLog.e(TAG, "SampleResultService received null result!!!!");
             return;
         }
-        TinkerLog.i(TAG, "SampleResultService receive result: %s", result.toString());
+        ShareTinkerLog.i(TAG, "SampleResultService receive result: %s", result.toString());
 
         //first, we want to kill the recover process
-        TinkerServiceInternals.killTinkerPatchServiceProcess(getApplicationContext());
+//        TinkerServiceInternals.killTinkerPatchServiceProcess(getApplicationContext());
+
+
+        // 先验证补丁结果
+        boolean patchValid = verifyPatchResult(result);
+        ShareTinkerLog.i(TAG, "Patch validation result: " + patchValid);
+
+        // 只有验证通过后才杀死服务进程
+        if (patchValid) {
+            ShareTinkerLog.i(TAG, "TinkerPatchService is running: " + isTinkerPatchServiceRunning());
+            // 延迟杀死服务进程
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    TinkerServiceInternals.killTinkerPatchServiceProcess(getApplicationContext());
+                }
+            }, 5000);
+        }
+
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
                 if (result.isSuccess) {
+                    ShareTinkerLog.d(TAG, "patch success, please restart process");
                     Toast.makeText(getApplicationContext(), "patch success, please restart process", Toast.LENGTH_LONG).show();
+
                 } else {
+                    ShareTinkerLog.d(TAG, "patch fail, please check reason");
                     Toast.makeText(getApplicationContext(), "patch fail, please check reason", Toast.LENGTH_LONG).show();
                 }
             }
@@ -69,12 +146,12 @@ public class SampleResultService extends DefaultTinkerResultService {
             //if you have not install tinker this moment, you can use TinkerApplicationHelper api
             if (checkIfNeedKill(result)) {
                 if (Utils.isBackground()) {
-                    TinkerLog.i(TAG, "it is in background, just restart process");
+                    ShareTinkerLog.i(TAG, "it is in background, just restart process");
                     restartProcess();
                 } else {
                     //we can wait process at background, such as onAppBackground
                     //or we can restart when the screen off
-                    TinkerLog.i(TAG, "tinker wait screen to restart process");
+                    ShareTinkerLog.i(TAG, "tinker wait screen to restart process");
                     new Utils.ScreenState(getApplicationContext(), new Utils.ScreenState.IOnScreenOff() {
                         @Override
                         public void onScreenOff() {
@@ -83,7 +160,7 @@ public class SampleResultService extends DefaultTinkerResultService {
                     });
                 }
             } else {
-                TinkerLog.i(TAG, "I have already install the newly patch version!");
+                ShareTinkerLog.i(TAG, "I have already install the newly patch version!");
             }
         }
     }
@@ -92,7 +169,7 @@ public class SampleResultService extends DefaultTinkerResultService {
      * you can restart your process through service or broadcast
      */
     private void restartProcess() {
-        TinkerLog.i(TAG, "app is background now, i can kill quietly");
+        ShareTinkerLog.i(TAG, "app is background now, i can kill quietly");
         //you can send service or broadcast intent to restart your process
         android.os.Process.killProcess(android.os.Process.myPid());
     }

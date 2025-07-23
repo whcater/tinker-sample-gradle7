@@ -15,7 +15,7 @@ if not exist "%cd%\app\build\bakApk\" (
 )
 
 rem Find the latest APK file in bakApk folder and store in temp file
-dir /b /o-d "%cd%\app\build\bakApk\*.apk" > "%temp%\latest_apk.txt" 2>nul
+dir /b /od "%cd%\app\build\bakApk\*.apk" > "%temp%\latest_apk.txt" 2>nul
 
 rem Check if any APK files found
 for /f %%i in ('type "%temp%\latest_apk.txt" ^| find /c /v ""') do set apk_count=%%i

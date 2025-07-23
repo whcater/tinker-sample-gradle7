@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 
 dependencies {
-    if (is_gradle_3()) {
         implementation fileTree(dir: 'libs', include: ['*.jar'])
         testImplementation 'junit:junit:4.12'
         implementation "androidx.appcompat:appcompat:1.1.0"
@@ -18,20 +17,7 @@ dependencies {
         //use to test multiDex
 //    implementation group: 'com.google.guava', name: 'guava', version: '19.0'
 //    implementation "org.scala-lang:scala-library:2.11.7"
-    } else {
-        compile fileTree(dir: 'libs', include: ['*.jar'])
-        testCompile 'junit:junit:4.12'
-        compile "androidx.appcompat:appcompat:1.1.0"
-        compile("com.tencent.tinker:tinker-android-lib:${TINKER_VERSION}") { changing = true }
-        provided("com.tencent.tinker:tinker-android-anno:${TINKER_VERSION}") { changing = true }
-        provided("com.tencent.tinker:tinker-android-anno-support:${TINKER_VERSION}") { changing = true }
-
-        compile "androidx.multidex:multidex:2.0.1"
-
-        //use to test multiDex
-//    compile group: 'com.google.guava', name: 'guava', version: '19.0'
-//    compile "org.scala-lang:scala-library:2.11.7"
-    }
+    
 }
 
 def gitSha() {
@@ -50,20 +36,14 @@ def javaVersion = JavaVersion.VERSION_1_8
 
 android {
     compileSdkVersion 33
-    buildToolsVersion "28.0.3"
 
     compileOptions {
         sourceCompatibility javaVersion
         targetCompatibility javaVersion
     }
-    //recommend
-    dexOptions {
-        jumboMode = true
-        preDexLibraries = false
-    }
 
     signingConfigs {
-        release {
+         release {
             try {
                 storeFile file("./keystore/release.keystore")
                 storePassword "testres"
@@ -85,11 +65,7 @@ android {
         targetSdkVersion 33
         versionCode 1
         versionName "1.0.0"
-        /**
-         * you can use multiDex and install it in your ApplicationLifeCycle implement
-         */
-        multiDexEnabled true
-        multiDexKeepProguard file("tinker_multidexkeep.pro")
+
         /**
          * buildConfig can change during patch!
          * we can use the newly value when patch
@@ -125,11 +101,16 @@ android {
             minifyEnabled true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), project.file('proguard-rules.pro')
+            multiDexEnabled true
+            multiDexKeepProguard file("tinker_multidexkeep.pro")
         }
         debug {
             debuggable true
-            minifyEnabled false
+            minifyEnabled true
             signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), project.file('proguard-rules.pro')
+            multiDexEnabled true
+            multiDexKeepProguard file("tinker_multidexkeep.pro")
         }
     }
     sourceSets {
@@ -151,19 +132,23 @@ def bakPath = file("${buildDir}/bakApk/")
  * add apk from the build/bakApk
  */
 ext {
-    //for some reason, you may want to ignore tinkerBuild, such as instant run debug build? 
+    //for some reason, you may want to ignore tinkerBuild, such as instant run debug build?
     tinkerEnabled = true
+//    tinkerOldApkPath = "${bakPath}/"
+//    tinkerApplyResourcePath = "${bakPath}/"
+//    tinkerApplyMappingPath = "${bakPath}/"
+
 
     //for normal build
     //old apk file to build patch apk
-    tinkerOldApkPath = "${bakPath}/app-debug-0718-16-11-37.apk"
+    tinkerOldApkPath = "${bakPath}/app-debug-0721-10-49-01.apk"
     //proguard mapping file to build patch apk
-    tinkerApplyMappingPath = "${bakPath}/app-debug-0718-16-11-37-mapping.txt"
+    tinkerApplyMappingPath = "${bakPath}/app-debug-mapping-0721-10-49-01.txt"
     //resource R.txt to build patch apk, must input if there is resource changed
-    tinkerApplyResourcePath = "${bakPath}/app-debug-0718-16-11-37-R.txt"
+    tinkerApplyResourcePath = "${bakPath}/app-debug-0721-10-49-01-R.txt"
 
     //only use for build all flavor, if not, just ignore this field
-    tinkerBuildFlavorDirectory = "${bakPath}/"
+//    tinkerBuildFlavorDirectory = "${bakPath}/app-1018-17-32-47"
 }
 
 
@@ -216,7 +201,7 @@ if (buildWithTinker()) {
          *         it won't crash, but these changes can't effect. you may ignore it
          * case 5: resources.arsc has changed, but we don't use applyResourceMapping to build
          */
-        ignoreWarning = true
+        ignoreWarning = false
 
         /**
          * optional，default 'true'
@@ -263,7 +248,7 @@ if (buildWithTinker()) {
              * if keepDexApply is true, class in which dex refer to the old apk.
              * open this can reduce the dex diff file size.
              */
-            keepDexApply = true
+            keepDexApply = false
 
             /**
              * optional, default 'false'
@@ -294,7 +279,7 @@ if (buildWithTinker()) {
              * if you want to support below 14, you must use jar
              * or you want to save rom or check quicker, you can use raw mode also
              */
-            dexMode = "jar"
+            dexMode = "raw"
 
             /**
              * necessary，default '[]'
@@ -314,7 +299,9 @@ if (buildWithTinker()) {
              */
             loader = [
                     //use sample, let BaseBuildInfo unchangeable with tinker
-                    "tinker.sample.android.app.BaseBuildInfo"
+//                    "tinker.sample.android.app.BaseBuildInfo"
+                    "com.tencent.tinker.loader.*",
+                    "tinker.sample.android.app.SampleApplication",
             ]
         }
 
@@ -384,7 +371,16 @@ if (buildWithTinker()) {
          * if you don't use zipArtifact or path, we just use 7za to try
          */
         sevenZip {
+            /**
+             * optional，default '7za'
+             * the 7zip artifact path, it will use the right 7za with your platform
+             */
             zipArtifact = "com.tencent.mm:SevenZip:1.1.10"
+            /**
+             * optional，default '7za'
+             * you can specify the 7za path yourself, it will overwrite the zipArtifact value
+             */
+//        path = "/usr/local/bin/7za"
         }
     }
 
@@ -394,76 +390,79 @@ if (buildWithTinker()) {
     }
     boolean hasFlavors = flavors.size() > 0
     def date = new Date().format("MMdd-HH-mm-ss")
-
     /**
-     * bak apk and mapping
-     */
+    * bak apk and mapping - Compatible with Gradle 7+
+    */
     android.applicationVariants.all { variant ->
         /**
-         * task type, you want to bak
-         */
+        * task type, you want to bak
+        */
         def taskName = variant.name
-
-        tasks.all {
+        tasks.configureEach {
             if ("assemble${taskName.capitalize()}".equalsIgnoreCase(it.name)) {
-
                 it.doLast {
                     copy {
                         def fileNamePrefix = "${project.name}-${variant.baseName}"
                         def newFileNamePrefix = hasFlavors ? "${fileNamePrefix}" : "${fileNamePrefix}-${date}"
-
                         def destPath = hasFlavors ? file("${bakPath}/${project.name}-${date}/${variant.flavorName}") : bakPath
-
+                        
+                        // 新的方式获取 APK 文件
                         if (variant.metaClass.hasProperty(variant, 'packageApplicationProvider')) {
                             def packageAndroidArtifact = variant.packageApplicationProvider.get()
                             if (packageAndroidArtifact != null) {
                                 try {
-                                    def outputFileName = variant.outputs.first().outputFileName
-                                    if (outputFileName.hasProperty('get')) {
-                                        outputFileName = outputFileName.get()
-                                    }
-                                    from new File(packageAndroidArtifact.outputDirectory.getAsFile().get(), outputFileName)
+                                    // 使用 outputFile 而不是 apkData.outputFileName
+                                    from new File(packageAndroidArtifact.outputDirectory.getAsFile().get(), 
+                                        variant.outputs.first().outputFile.name)
                                 } catch (Exception e) {
-                                    def outputFileName = variant.outputs.first().outputFileName
-                                    if (outputFileName.hasProperty('get')) {
-                                        outputFileName = outputFileName.get()
-                                    }
-                                    from new File(packageAndroidArtifact.outputDirectory, outputFileName)
+                                    from new File(packageAndroidArtifact.outputDirectory, 
+                                        variant.outputs.first().outputFile.name)
                                 }
                             } else {
-                                from variant.outputs.first().mainOutputFile.outputFile
+                                from variant.outputs.first().outputFile
                             }
                         } else {
                             from variant.outputs.first().outputFile
                         }
-
+                        
                         into destPath
                         rename { String fileName ->
                             fileName.replace("${fileNamePrefix}.apk", "${newFileNamePrefix}.apk")
                         }
-
+                        
                         def dirName = variant.dirName
                         if (hasFlavors) {
                             dirName = taskName
                         }
+                        
+                        // 复制 mapping 文件
                         from "${buildDir}/outputs/mapping/${dirName}/mapping.txt"
                         into destPath
                         rename { String fileName ->
                             fileName.replace("mapping.txt", "${newFileNamePrefix}-mapping.txt")
                         }
-
-                        from "${buildDir}/intermediates/symbols/${dirName}/R.txt"
-                        from "${buildDir}/intermediates/symbol_list/${dirName}/R.txt"
-                        from "${buildDir}/intermediates/runtime_symbol_list/${dirName}/R.txt"
-                        into destPath
-                        rename { String fileName ->
-                            fileName.replace("R.txt", "${newFileNamePrefix}-R.txt")
+                        
+                        // 复制 R.txt 文件 - 需要检查路径是否存在
+                        def rTxtPaths = [
+                            "${buildDir}/intermediates/symbols/${dirName}/R.txt",
+                            "${buildDir}/intermediates/symbol_list/${dirName}/R.txt",
+                            "${buildDir}/intermediates/runtime_symbol_list/${dirName}/R.txt"
+                        ]
+                        
+                        rTxtPaths.each { path ->
+                            if (file(path).exists()) {
+                                from path
+                                into destPath
+                                rename { String fileName ->
+                                    fileName.replace("R.txt", "${newFileNamePrefix}-R.txt")
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-    }
+    }   
     project.afterEvaluate {
         //sample use for build all flavor for one time
         if (hasFlavors) {

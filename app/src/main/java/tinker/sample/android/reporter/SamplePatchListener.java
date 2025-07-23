@@ -21,10 +21,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.tencent.tinker.lib.listener.DefaultPatchListener;
-import com.tencent.tinker.lib.util.TinkerLog;
 import com.tencent.tinker.loader.shareutil.ShareConstants;
 import com.tencent.tinker.loader.shareutil.SharePatchFileUtil;
 import com.tencent.tinker.loader.shareutil.ShareTinkerInternals;
+import com.tencent.tinker.loader.shareutil.ShareTinkerLog;
 
 import java.io.File;
 import java.util.Properties;
@@ -49,7 +49,7 @@ public class SamplePatchListener extends DefaultPatchListener {
     public SamplePatchListener(Context context) {
         super(context);
         maxMemory = ((ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE)).getMemoryClass();
-        TinkerLog.i(TAG, "application maxMemory:" + maxMemory);
+        ShareTinkerLog.i(TAG, "application maxMemory:" + maxMemory);
     }
 
     /**
@@ -63,7 +63,7 @@ public class SamplePatchListener extends DefaultPatchListener {
     @Override
     public int patchCheck(String path, String patchMd5) {
         File patchFile = new File(path);
-        TinkerLog.i(TAG, "receive a patch file: %s, file size:%d", path, SharePatchFileUtil.getFileOrDirectorySize(patchFile));
+        ShareTinkerLog.i(TAG, "receive a patch file: %s, file size:%d", path, SharePatchFileUtil.getFileOrDirectorySize(patchFile));
         int returnCode = super.patchCheck(path, patchMd5);
 
         if (returnCode == ShareConstants.ERROR_PATCH_OK) {
@@ -86,7 +86,7 @@ public class SamplePatchListener extends DefaultPatchListener {
                 returnCode = Utils.ERROR_PATCH_CONDITION_NOT_SATISFIED;
             } else {
                 String platform = properties.getProperty(Utils.PLATFORM);
-                TinkerLog.i(TAG, "get platform:" + platform);
+                ShareTinkerLog.i(TAG, "get platform:" + platform);
                 // check patch platform require
                 if (platform == null || !platform.equals(BuildInfo.PLATFORM)) {
                     returnCode = Utils.ERROR_PATCH_CONDITION_NOT_SATISFIED;

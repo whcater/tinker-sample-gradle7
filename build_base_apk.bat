@@ -18,7 +18,7 @@ echo [Step 4] Finding and installing latest APK from bakApk folder...
 
 rem Find the latest APK file in bakApk folder using a simpler method
 set "latest_apk="
-for /f "delims=" %%f in ('dir /b /o-d "app\build\bakApk\*.apk" 2^>nul') do (
+for /f "delims=" %%f in ('dir /b /od "app\build\bakApk\*.apk" 2^>nul') do (
     if not defined latest_apk (
         set "latest_apk=app\build\bakApk\%%f"
     )

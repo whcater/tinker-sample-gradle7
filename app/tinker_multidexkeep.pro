@@ -18,9 +18,9 @@
      void attachBaseContext(android.content.Context);
 }
 
--keep class com.tencent.tinker.loader.TinkerTestAndroidNClassLoader {
-    <init>(...);
-}
+#-keep class com.tencent.tinker.loader.TinkerTestAndroidNClassLoader {
+#    <init>(...);
+#}
 
 #your dex.loader patterns here
 -keep class tinker.sample.android.app.SampleApplication {
