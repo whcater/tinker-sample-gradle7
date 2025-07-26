@@ -1,4 +1,4 @@
-# Tinder Sample Android Project
+# Tinker Sample Android Project
 
 A sample Android application demonstrating the integration and usage of [Tencent Tinker](https://github.com/Tencent/tinker), a hot-fix solution library for Android.
 
@@ -42,7 +42,7 @@ app/
 
 ```bash
 git clone <repository-url>
-cd tinder-sample
+cd tinker-sample-gradle7
 ```
 
 ### 2. Build Base APK
